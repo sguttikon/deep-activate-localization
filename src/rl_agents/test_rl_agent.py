@@ -482,7 +482,7 @@ def main(_):
     elif FLAGS.obs_mode == 'depth' or FLAGS.obs_mode == 'occupancy_grid':
         FLAGS.obs_ch = 1
     else:
-        raise ValueError
+        raise ValueError(FLAGS.obs_mode)
 
     test_agent(FLAGS)
 

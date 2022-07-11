@@ -360,7 +360,7 @@ class LocalizeGibsonEnv(iGibsonEnv):
             # include pfnet's estimate in environment's reward
             # TODO: may need better reward ?
             rescale = 10
-            reward = (reward-tf.stop_gradient(loss_dict['pred']))/rescale
+            reward = (reward - tf.stop_gradient(loss_dict['pred'])) / rescale
 
         # return custom environment observation
         custom_state = self.process_state(state)
@@ -597,16 +597,11 @@ class LocalizeGibsonEnv(iGibsonEnv):
         new_odom = datautils.calc_odometry(old_pose, new_pose)
 
         # convert to tensor, add batch_dim
-        new_rgb_obs = tf.expand_dims(
-            tf.convert_to_tensor(new_rgb_obs, dtype=tf.float32), axis=0)
-        new_depth_obs = tf.expand_dims(
-            tf.convert_to_tensor(new_depth_obs, dtype=tf.float32), axis=0)
-        new_occupancy_grid = tf.expand_dims(
-            tf.convert_to_tensor(new_occupancy_grid, dtype=tf.float32), axis=0)
-        new_odom = tf.expand_dims(
-            tf.convert_to_tensor(new_odom, dtype=tf.float32), axis=0)
-        new_pose = tf.expand_dims(
-            tf.convert_to_tensor(new_pose, dtype=tf.float32), axis=0)
+        new_rgb_obs = tf.expand_dims(tf.convert_to_tensor(new_rgb_obs, dtype=tf.float32), axis=0)
+        new_depth_obs = tf.expand_dims(tf.convert_to_tensor(new_depth_obs, dtype=tf.float32), axis=0)
+        new_occupancy_grid = tf.expand_dims(tf.convert_to_tensor(new_occupancy_grid, dtype=tf.float32), axis=0)
+        new_odom = tf.expand_dims(tf.convert_to_tensor(new_odom, dtype=tf.float32), axis=0)
+        new_pose = tf.expand_dims(tf.convert_to_tensor(new_pose, dtype=tf.float32), axis=0)
         odometry = tf.expand_dims(new_odom, axis=1)
 
         # add traj_dim
@@ -622,7 +617,7 @@ class LocalizeGibsonEnv(iGibsonEnv):
         elif obs_mode == 'occupancy_grid':
             observation = tf.expand_dims(old_occupancy_grid, axis=1)
         else:
-            raise ValueError
+            raise ValueError(obs_mode)
 
         # sanity check
         assert list(odometry.shape) == [batch_size, trajlen, 3], f'{odometry.shape}'

@@ -216,7 +216,7 @@ def get_discrete_action(max_lin_vel, max_ang_vel):
     Get manual keyboard action
     :return int: discrete action for moving forward/backward/left/right
     """
-    key = input('Enter Key: ')
+    key = input('Enter Key: [wsda, nothing]')
     # default stay still
     if key == 'w':
         # forward

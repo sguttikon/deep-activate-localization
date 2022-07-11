@@ -4,6 +4,7 @@ import argparse
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
+import time
 try:
     from .architecture import networks
     from .architecture.spatial_transformer import transformer

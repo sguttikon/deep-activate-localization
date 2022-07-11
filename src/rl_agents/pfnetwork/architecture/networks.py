@@ -141,7 +141,7 @@ def map_obs_encoder():
 
 def likelihood_estimator():
 
-    joint_vector = keras.Input(shape=[400], name="map_obs_joint_features")   # (bs*np, 5 * 5 * 16)
+    joint_vector = keras.Input(shape=[400], name="map_obs_joint_features")   # (bs*np, 5 * 5 * 16 = 400)
     assert joint_vector.get_shape().as_list()[1] == 400
     x = joint_vector
 

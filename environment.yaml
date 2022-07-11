@@ -1,0 +1,17 @@
+name: active_localization
+channels:
+  - anaconda
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.7
+  - cudatoolkit=11.2
+  - cudnn=8.1.0
+  - tensorflow==2.6.0
+  - numpy==1.21.1
+  - scikit-learn
+  - keras==2.6.0
+  - transforms3d==0.3.1
+  - setuptools=58.0.4=py37h06a4308_0
+  pip:
+    - gin-config==0.4.0

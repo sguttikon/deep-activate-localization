@@ -207,7 +207,7 @@ def parse_args():
     elif params.obs_mode == 'depth' or params.obs_mode == 'occupancy_grid':
         params.obs_ch = 1
     else:
-        raise ValueError
+        raise ValueError(params.obs_mode)
 
     # convert multi-input fields to numpy arrays
     params.transition_std = np.array(params.transition_std, np.float32)
@@ -239,6 +239,7 @@ def parse_args():
     params.num_clusters = 10
 
     params.env_mode = 'headless'
+    # params.env_mode = 'gui'  # iggui, pbgui
     os.environ['CUDA_VISIBLE_DEVICES'] = str(params.device_idx)
     os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 
@@ -523,7 +524,6 @@ def rt_pfnet_test(arg_params):
 
     test_summary_writer = tf.summary.create_file_writer(log_dir)
 
-    num_eval_episodes = 1
     with test_summary_writer.as_default():
         for eps in tqdm(range(arg_params.num_eval_episodes)):
             obs = env.reset()
