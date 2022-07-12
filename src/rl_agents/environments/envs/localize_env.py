@@ -344,8 +344,8 @@ class LocalizeGibsonEnv(iGibsonEnv):
 
         # perform particle filter update
         if self.use_pfnet:
-            new_rgb_obs = copy.deepcopy(state['rgb']*255) # [0, 255]
-            new_depth_obs = copy.deepcopy(state['depth']*100) # [0, 100]
+            new_rgb_obs = copy.deepcopy(state['rgb'] * 255) # [0, 255]
+            new_depth_obs = copy.deepcopy(state['depth'] * 100) # [0, 100]
             new_occupancy_grid = copy.deepcopy(state['occupancy_grid'])
 
             # HACK: wrap stop_gradient to make sure pfnet weights are not updated during rl training
@@ -488,19 +488,12 @@ class LocalizeGibsonEnv(iGibsonEnv):
 
         :return: processed_state: processed env observations
         """
-        assert np.min(state['rgb'])>=0. and np.max(state['rgb'])<=1.
-        assert np.min(state['depth'])>=0. and np.max(state['depth'])<=1.
+        assert np.min(state['rgb']) >= 0. and np.max(state['rgb']) <= 1.
+        assert np.min(state['depth']) >= 0. and np.max(state['depth']) <= 1.
 
-        self.eps_obs['rgb'].append((state['rgb']*255).astype(np.uint8))
-        self.eps_obs['depth'].append(cv2.applyColorMap((state['depth']*255).astype(np.uint8), cv2.COLORMAP_JET))
-        self.eps_obs['occupancy_grid'].append(cv2.cvtColor((state['occupancy_grid']*255).astype(np.uint8), cv2.COLOR_GRAY2BGR))
-
-        # check for close obstacles to robot
-        min_depth = np.min(state['depth']*100, axis=0)
-        left = np.min(min_depth[:64]) < self.depth_th
-        left_front = np.min(min_depth[64:128]) < self.depth_th
-        right_front = np.min(min_depth[128:192]) < self.depth_th
-        right = np.min(min_depth[192:]) < self.depth_th
+        self.eps_obs['rgb'].append((state['rgb'] * 255).astype(np.uint8))
+        self.eps_obs['depth'].append(cv2.applyColorMap((state['depth'] * 255).astype(np.uint8), cv2.COLORMAP_JET))
+        self.eps_obs['occupancy_grid'].append(cv2.cvtColor((state['occupancy_grid'] * 255).astype(np.uint8), cv2.COLOR_GRAY2BGR))
 
         # process and return only output we are expecting to
         processed_state = OrderedDict()
@@ -549,6 +542,12 @@ class LocalizeGibsonEnv(iGibsonEnv):
         if 'likelihood_map' in self.pf_params.custom_output:
             processed_state['likelihood_map'] = self.get_likelihood_map()
         if 'obstacle_obs' in self.pf_params.custom_output:
+            # check for close obstacles to robot
+            min_depth = np.min(state['depth'] * 100, axis=0)
+            left = np.min(min_depth[:64]) < self.depth_th
+            left_front = np.min(min_depth[64:128]) < self.depth_th
+            right_front = np.min(min_depth[128:192]) < self.depth_th
+            right = np.min(min_depth[192:]) < self.depth_th
             processed_state['obstacle_obs'] = np.array([left, left_front, right_front, right])
 
         return processed_state
@@ -662,7 +661,8 @@ class LocalizeGibsonEnv(iGibsonEnv):
             new_depth_obs,
             new_occupancy_grid
         ]
-        self.curr_cluster = self.compute_kmeans()
+        if 'kmeans_cluster' in self.pf_params.custom_output:
+            self.curr_cluster = self.compute_kmeans()
 
         return loss_dict
 
