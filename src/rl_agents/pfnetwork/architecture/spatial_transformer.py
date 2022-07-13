@@ -15,10 +15,14 @@ def transformer(U, theta, out_size):
 
     def _interpolate(im, x, y, out_size):
         # constants
-        num_batch = tf.shape(input=im)[0]
-        height = tf.shape(input=im)[1]
-        width = tf.shape(input=im)[2]
-        channels = tf.shape(input=im)[3]
+        # num_batch = tf.shape(input=im)[0]
+        num_batch = im.shape[0]
+        # height = tf.shape(input=im)[1]
+        height = im.shape[1]
+        # width = tf.shape(input=im)[2]
+        width = im.shape[2]
+        # channels = tf.shape(input=im)[3]
+        channels = im.shape[3]
 
         x = tf.cast(x, 'float32')
         y = tf.cast(y, 'float32')
@@ -95,8 +99,10 @@ def transformer(U, theta, out_size):
         return grid
 
     def _transform(theta, input_dim, out_size):
-        num_batch = tf.shape(input=input_dim)[0]
-        num_channels = tf.shape(input=input_dim)[3]
+        # num_batch = tf.shape(input=input_dim)[0]
+        num_batch = input_dim.shape[0]
+        # num_channels = tf.shape(input=input_dim)[3]
+        num_channels = input_dim.shape[3]
         theta = tf.reshape(theta, (-1, 2, 3))
         theta = tf.cast(theta, 'float32')
 

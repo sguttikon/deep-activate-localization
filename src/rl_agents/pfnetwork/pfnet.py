@@ -300,9 +300,27 @@ class PFCell(keras.layers.AbstractRNNCell):
         transform_m = tf.reshape(transform_m[:, :2], [batch_size, num_particles, 6])
 
         # iterate over num_particles to transform image using spatial transform network
-        local_maps = tf.stack([
-            transformer(global_map, transform_m[:, i], local_map_size) for i in range(num_particles)
-        ], axis=1)
+        def transform_batch(U, thetas, out_size):
+            num_batch, num_transforms = map(int, thetas.get_shape().as_list()[:2])
+            indices = [[i] * num_transforms for i in range(num_batch)]
+            input_repeated = tf.gather(U, tf.reshape(indices, [-1]))
+            return transformer(input_repeated, thetas, out_size)
+
+        t = time.time()
+        assert batch_size == 1, (batch_size, "Just haven't tested it for batches yet, might already work though")
+        local_maps_new = transform_batch(U=global_map, thetas=transform_m, out_size=local_map_size)
+        local_maps_new = local_maps_new[tf.newaxis]
+        local_maps = local_maps_new
+        print(f"ccccccccccc {(time.time() - t) / 60:.3f}")
+
+        # t = time.time()
+        # print("aaaaaaaaaaaaaaaaaaaaa")
+        # local_maps = tf.stack([
+        #     transformer(global_map, transform_m[:, i], local_map_size) for i in range(num_particles)
+        # ], axis=1)
+        # print(f"zzzzzzzzzzzzzzz {(time.time() - t) / 60:.3f}")
+
+
 
         # reshape if any information has lost in spatial transform network
         local_maps = tf.reshape(local_maps,
