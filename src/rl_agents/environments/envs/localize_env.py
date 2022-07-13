@@ -171,6 +171,8 @@ class LocalizeGibsonEnv(iGibsonEnv):
 
         print("=====> LocalizeGibsonEnv initialized")
 
+        self.last_reward = 0.0
+
 
     def init_pf_params(self, FLAGS):
         """
@@ -250,7 +252,7 @@ class LocalizeGibsonEnv(iGibsonEnv):
 
         if self.pf_params.use_plot:
             # code related to displaying/storing results in matplotlib
-            self.fig = plt.figure(figsize=(7, 7))
+            self.fig = plt.figure(figsize=(len(self.observation_space) * 7, 7))
             self.plt_ax = None
             self.env_plts = {
                 'map_plt': None,
@@ -362,6 +364,9 @@ class LocalizeGibsonEnv(iGibsonEnv):
             rescale = 10
             reward = (reward - tf.stop_gradient(loss_dict['pred'])) / rescale
 
+        # just for the render function
+        self.last_reward = reward
+
         # return custom environment observation
         custom_state = self.process_state(state)
         return custom_state, reward, done, info
@@ -441,8 +446,14 @@ class LocalizeGibsonEnv(iGibsonEnv):
         if self.pf_params.use_plot:
             # clear subplots
             plt.clf()
-            self.plt_ax = self.fig.add_subplot(111)
-            self.plt_ax.set_title('iGibson Apartment')
+
+            num_subplots = 4
+            # for sensor in ['rgb_obs', 'depth_obs', 'occupancy_grid']:
+            #     if self.observation_space.get(sensor, None):
+            #         num_subplots += 1
+
+            self.plt_ax = [self.fig.add_subplot(1, num_subplots, i + 1) for i in range(num_subplots)]
+            self.plt_ax[0].set_title('iGibson Apartment')
             self.env_plts = {
                 'map_plt': None,
                 'robot_gt_plt': {
@@ -1093,13 +1104,13 @@ class LocalizeGibsonEnv(iGibsonEnv):
                 likelihood_map[:, :, 2] /= np.max(likelihood_map[:, :, 2])
 
                 map_plt = self.env_plts['map_plt']
-                map_plt = render.draw_floor_map(likelihood_map, self.org_map_shape, self.plt_ax, map_plt)
+                map_plt = render.draw_floor_map(likelihood_map, self.org_map_shape, self.plt_ax[0], map_plt)
                 self.env_plts['map_plt'] = map_plt
             else:
                 # environment map
                 floor_map = self.floor_map[0].cpu().numpy()
                 map_plt = self.env_plts['map_plt']
-                map_plt = render.draw_floor_map(floor_map, self.org_map_shape, self.plt_ax, map_plt)
+                map_plt = render.draw_floor_map(floor_map, self.org_map_shape, self.plt_ax[0], map_plt)
                 self.env_plts['map_plt'] = map_plt
 
             # ground truth robot pose and heading
@@ -1111,7 +1122,7 @@ class LocalizeGibsonEnv(iGibsonEnv):
                 gt_pose,
                 color,
                 floor_map.shape,
-                self.plt_ax,
+                self.plt_ax[0],
                 position_plt,
                 heading_plt,
                 plt_path=True)
@@ -1127,7 +1138,7 @@ class LocalizeGibsonEnv(iGibsonEnv):
                 est_pose,
                 color,
                 floor_map.shape,
-                self.plt_ax,
+                self.plt_ax[0],
                 position_plt,
                 heading_plt,
                 plt_path=False)
@@ -1179,14 +1190,26 @@ class LocalizeGibsonEnv(iGibsonEnv):
             #     f' pose mse: {np.linalg.norm(pose_diff):02.3f}\n collisions: {self.collision_step:03.0f}/{self.current_step:03.0f}',
             #     '#7B241C', self.plt_ax, step_txt_plt)
             step_txt_plt = render.draw_text(
-                f' pose mse: {np.linalg.norm(pose_diff):02.3f}\n current step: {self.current_step//self.pf_params.loop:02.0f}',
-                '#FFFFFF', self.plt_ax, step_txt_plt)
+                f' pose mse: {np.linalg.norm(pose_diff):02.3f}\n current step: {self.current_step//self.pf_params.loop:02.0f}\n last reward: {self.last_reward:02.3f}\n collision: {has_collision}',
+                '#FFFFFF', self.plt_ax[0], step_txt_plt)
             self.env_plts['step_txt_plt'] = step_txt_plt
             # print(f'gt_pose: {gt_pose_mts}, est_pose: {est_pose_mts} in mts')
 
-            self.plt_ax.legend([self.env_plts['robot_gt_plt']['position_plt'],
+            self.plt_ax[0].legend([self.env_plts['robot_gt_plt']['position_plt'],
                                 self.env_plts['robot_est_plt']['position_plt']],
                                ["GT Pose", "Est Pose"], loc='upper left', fontsize=12)
+
+            next_subplot = 1
+            if self.eps_obs.get('rgb', None):
+                self.plt_ax[next_subplot].imshow(self.eps_obs['rgb'][-1])
+                next_subplot += 1
+            if self.eps_obs.get('depth', None):
+                self.plt_ax[next_subplot].imshow(self.eps_obs['depth'][-1])
+                next_subplot += 1
+            if self.eps_obs.get('occupancy_grid', None):
+                self.plt_ax[next_subplot].imshow(self.eps_obs['occupancy_grid'][-1])
+                next_subplot += 1
+
 
             if self.pf_params.store_plot:
                 self.canvas.draw()
